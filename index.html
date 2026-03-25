@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyage en France 2026 — 旅のしおり</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy: #1a2744;
+  --navy-light: #2c3e6b;
+  --gold: #c9a96e;
+  --gold-light: #e8d5a8;
+  --cream: #faf8f3;
+  --cream-dark: #f0ebe0;
+  --text: #2d2d2d;
+  --text-light: #6b6b6b;
+  --white: #ffffff;
+  --rose: #c4a0a0;
+  --lavender: #8e7cc3;
+  --provence-blue: #6fa8c7;
+  --riviera-teal: #4a9e8e;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 300;
+  color: var(--text);
+  background: var(--cream);
+  line-height: 1.8;
+  font-size: 15px;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', 'Noto Sans JP', serif;
+  font-weight: 700;
+}
+
+/* ========== Navigation ========== */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--navy);
+  z-index: 100;
+  padding: 0;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+}
+
+nav .nav-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 0;
+}
+
+nav .nav-inner::-webkit-scrollbar { display: none; }
+
+nav a {
+  color: var(--gold-light);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 14px 16px;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: 0.02em;
+}
+
+nav a:hover, nav a:focus {
+  background: var(--navy-light);
+  color: var(--gold);
+}
+
+nav .nav-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  padding: 14px 20px 14px 16px;
+  border-right: 1px solid var(--navy-light);
+  flex-shrink: 0;
+}
+
+/* ========== Cover ========== */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--cream);
+  color: var(--text);
+  padding: 60px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  background: linear-gradient(to bottom, #2e4a7a, #2e4a7a);
+  pointer-events: none;
+}
+
+.cover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  background: linear-gradient(to bottom, #c13a40, #c13a40);
+  pointer-events: none;
+}
+
+.cover .tricolor {
+  display: flex;
+  gap: 0;
+  margin-bottom: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.cover .tricolor span {
+  width: 32px;
+  height: 6px;
+}
+
+.cover .tri-bleu { background: #2e4a7a; }
+.cover .tri-blanc { background: #ffffff; border-top: 1px solid #e0dcd4; border-bottom: 1px solid #e0dcd4; }
+.cover .tri-rouge { background: #c13a40; }
+
+.cover-ornament {
+  font-size: 24px;
+  color: #c13a40;
+  letter-spacing: 12px;
+  margin-bottom: 24px;
+  opacity: 0.35;
+}
+
+.cover h1 {
+  font-size: clamp(36px, 8vw, 64px);
+  font-weight: 700;
+  color: #2e4a7a;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.cover .subtitle {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: clamp(14px, 3vw, 18px);
+  font-weight: 300;
+  color: var(--text-light);
+  letter-spacing: 0.15em;
+  margin-bottom: 40px;
+}
+
+.cover .dates {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: 0.1em;
+}
+
+.cover .members {
+  font-size: 14px;
+  color: #c13a40;
+  font-weight: 400;
+  margin-bottom: 50px;
+}
+
+.cover .route {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #2e4a7a;
+  opacity: 0.7;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cover .route span { white-space: nowrap; }
+.cover .route .arrow { font-size: 10px; color: #c13a40; opacity: 1; }
+
+/* ========== Sections ========== */
+.section {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 70px 24px 40px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 48px;
+  padding-top: 20px;
+}
+
+.section-header .section-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font-size: clamp(24px, 5vw, 32px);
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.section-header .section-sub {
+  font-size: 13px;
+  color: var(--text-light);
+  letter-spacing: 0.1em;
+}
+
+.section-divider {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--gold);
+  font-size: 20px;
+  letter-spacing: 8px;
+  opacity: 0.4;
+}
+
+/* ========== Day Cards ========== */
+.day-card {
+  background: var(--white);
+  border-radius: 16px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.day-header {
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.day-date {
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 12px;
+  padding: 8px 4px;
+  text-align: center;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.day-date .month { font-size: 11px; font-weight: 400; opacity: 0.8; display: block; }
+.day-date .date { font-size: 24px; font-weight: 700; display: block; line-height: 1.2; font-family: 'Playfair Display', serif; }
+.day-date .dow { font-size: 10px; font-weight: 400; opacity: 0.7; display: block; }
+
+.day-title {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--navy);
+}
+
+.day-title small {
+  display: block;
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.day-body { padding: 24px 28px; }
+
+.day-hotel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+
+.day-hotel .hotel-icon { flex-shrink: 0; font-size: 16px; }
+.day-hotel .hotel-name { font-weight: 500; color: var(--navy); }
+.day-hotel .hotel-address { color: var(--text-light); font-size: 12px; }
+
+.timeline { padding-left: 20px; border-left: 2px solid var(--gold-light); }
+
+.timeline-item {
+  position: relative;
+  padding: 0 0 20px 20px;
+}
+
+.timeline-item:last-child { padding-bottom: 0; }
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--white);
+}
+
+.timeline-time {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+.timeline-content { font-size: 14px; }
+.timeline-note { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+.spot-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.spot-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--navy);
+}
+
+/* ========== Hotels ========== */
+.hotel-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.hotel-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 24px;
+  border: 1px solid var(--cream-dark);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+}
+
+.hotel-card .city-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.badge-paris { background: #eee8f5; color: #5b4a8a; }
+.badge-avignon { background: #fef3e0; color: #b8860b; }
+.badge-nice { background: #e0f2f1; color: #2e7d6e; }
+
+.hotel-card h4 {
+  font-size: 17px;
+  color: var(--navy);
+  margin-bottom: 6px;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+.hotel-card .hotel-detail {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+
+/* ========== Reading / Column ========== */
+.reading-section {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 36px 32px;
+  margin-bottom: 28px;
+  border: 1px solid var(--cream-dark);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+}
+
+.reading-section h3 {
+  font-size: 20px;
+  color: var(--navy);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reading-section h3 .r-icon { font-size: 24px; }
+
+.reading-section .r-lead {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--cream-dark);
+  padding-bottom: 16px;
+}
+
+.reading-section h4 {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-top: 22px;
+  margin-bottom: 8px;
+  padding-left: 14px;
+  border-left: 3px solid var(--gold);
+}
+
+.reading-section p {
+  font-size: 14px;
+  line-height: 1.9;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.artwork-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.artwork-item {
+  background: var(--cream);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+  border: 1px solid var(--cream-dark);
+}
+
+.artwork-item img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.artwork-item .art-caption {
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.artwork-item .art-place { font-weight: 500; color: var(--navy); }
+.artwork-item .art-work { font-size: 12px; color: var(--text-light); margin-top: 4px; line-height: 1.5; }
+
+/* ========== Map ========== */
+#trip-map { height: 480px; border-radius: 14px; border: 1px solid var(--cream-dark); z-index: 1; }
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.map-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ========== Address List ========== */
+.address-list { margin-top: 36px; }
+
+.address-group {
+  margin-bottom: 24px;
+}
+
+.address-group h4 {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--cream-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.address-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.address-entry:last-child { border-bottom: none; }
+
+.address-entry .addr-name {
+  font-weight: 500;
+  color: var(--navy);
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.address-entry .addr-text {
+  color: var(--text-light);
+  word-break: break-all;
+}
+
+.address-entry .addr-link {
+  color: var(--provence-blue);
+  text-decoration: none;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.address-entry .addr-link:hover { text-decoration: underline; }
+
+@media (max-width: 600px) {
+  .address-entry { flex-direction: column; gap: 2px; }
+  .address-entry .addr-name { min-width: auto; }
+  #trip-map { height: 350px; }
+}
+
+/* ========== Checklist ========== */
+.checklist-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 500px) {
+  .checklist-grid { grid-template-columns: 1fr; }
+}
+
+.checklist-category {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid var(--cream-dark);
+}
+
+.checklist-category h4 {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gold-light);
+  border-radius: 5px;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.check-item input[type="checkbox"]:checked {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.check-item input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.check-item.checked label {
+  text-decoration: line-through;
+  color: var(--text-light);
+}
+
+/* ========== Info Cards ========== */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 500px) {
+  .info-grid { grid-template-columns: 1fr; }
+}
+
+.info-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 22px;
+  border: 1px solid var(--cream-dark);
+}
+
+.info-card h4 {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--navy);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-card p, .info-card li {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.info-card ul { list-style: none; padding: 0; }
+.info-card li { padding: 3px 0; }
+
+/* ========== Phrase Table ========== */
+.phrase-table {
+  width: 100%;
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--cream-dark);
+  margin-top: 24px;
+}
+
+.phrase-table th {
+  background: var(--navy);
+  color: var(--gold-light);
+  font-weight: 400;
+  font-size: 12px;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.phrase-table td {
+  padding: 10px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.phrase-table tr:last-child td { border-bottom: none; }
+
+.phrase-table .fr {
+  font-weight: 500;
+  color: var(--navy);
+}
+
+.phrase-table .reading {
+  color: var(--text-light);
+  font-size: 12px;
+}
+
+/* ========== Memo ========== */
+.memo-area {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 28px;
+  border: 1px solid var(--cream-dark);
+  min-height: 200px;
+}
+
+.memo-area h4 {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 16px;
+}
+
+.memo-lines {
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    var(--cream-dark) 31px,
+    var(--cream-dark) 32px
+  );
+  min-height: 160px;
+}
+
+/* ========== Footer ========== */
+footer {
+  text-align: center;
+  padding: 40px 20px 60px;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+footer .footer-ornament {
+  color: var(--gold);
+  letter-spacing: 8px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+/* ========== Print ========== */
+@media print {
+  nav { display: none; }
+  body { font-size: 12px; background: white; }
+
+  .cover {
+    min-height: auto;
+    padding: 80px 40px;
+    page-break-after: always;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .section { padding: 30px 0; }
+
+  #trip-map, .map-legend { display: none; }
+
+  .day-card, .reading-section, .hotel-card, .checklist-category, .info-card, .address-group {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .section-header { page-break-after: avoid; }
+  .day-card { page-break-inside: avoid; }
+  .reading-section { page-break-inside: avoid; }
+
+  .check-item input[type="checkbox"] {
+    border: 1.5px solid #999;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .memo-lines { min-height: 250px; }
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 600px) {
+  .day-header { padding: 16px 18px; gap: 12px; }
+  .day-body { padding: 18px; }
+  .day-date { min-width: 50px; padding: 6px 4px; }
+  .day-date .date { font-size: 20px; }
+  .reading-section { padding: 24px 20px; }
+  .artwork-pair { grid-template-columns: 1fr; }
+  .hotel-card { padding: 18px; }
+  nav a { padding: 12px 12px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-inner">
+    <span class="nav-title">France 2026</span>
+    <a href="#schedule">日程表</a>
+    <a href="#gogh">ゴッホ</a>
+    <a href="#spots">スポット</a>
+    <a href="#culture">文化</a>
+    <a href="#hotels">ホテル</a>
+    <a href="#map">地図</a>
+    <a href="#checklist">持ち物</a>
+    <a href="#info">基本情報</a>
+  </div>
+</nav>
+
+<!-- ==================== Cover ==================== -->
+<section class="cover" id="top">
+  <div class="tricolor"><span class="tri-bleu"></span><span class="tri-blanc"></span><span class="tri-rouge"></span></div>
+  <div class="cover-ornament">✦ ✦ ✦</div>
+  <h1>Voyage en France</h1>
+  <p class="subtitle">フランス旅行のしおり</p>
+  <p class="dates">2026.5.30 sat — 6.6 fri</p>
+  <p class="members">Yumiko ・ Saki ・ Kumi</p>
+  <div class="route">
+    <span>Paris パリ</span>
+    <span class="arrow">▸</span>
+    <span>Avignon アヴィニョン</span>
+    <span class="arrow">▸</span>
+    <span>Nice ニース</span>
+    <span class="arrow">▸</span>
+    <span>Paris パリ</span>
+  </div>
+</section>
+
+<!-- ==================== Schedule ==================== -->
+<div class="section" id="schedule">
+  <div class="section-header">
+    <div class="section-icon">🗓</div>
+    <h2>Itinéraire</h2>
+    <p class="section-sub">旅のスケジュール</p>
+  </div>
+
+  <!-- Day 1: 5/30 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date">
+        <span class="month">MAY</span>
+        <span class="date">30</span>
+        <span class="dow">SAT</span>
+      </div>
+      <div class="day-title">パリ到着日<small>Arrivée à Paris</small></div>
+    </div>
+    <div class="day-body">
+      <div class="day-hotel">
+        <span class="hotel-icon">🏨</span>
+        <div>
+          <div class="hotel-name">SAX Paris, LXR Hotels & Resorts</div>
+          <div class="hotel-address">55 Av. de Saxe, 75007 Paris</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">19:15</div>
+          <div class="timeline-content">シャルル・ド・ゴール空港（CDG）到着</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">20:30頃</div>
+          <div class="timeline-content">ホテルチェックイン</div>
+          <div class="timeline-note">空港からホテルまでタクシーで約50分</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 2: 5/31 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date">
+        <span class="month">MAY</span>
+        <span class="date">31</span>
+        <span class="dow">SUN</span>
+      </div>
+      <div class="day-title">パリ観光<small>Journée à Paris</small></div>
+    </div>
+    <div class="day-body">
+      <div class="day-hotel">
+        <span class="hotel-icon">🏨</span>
+        <div>
+          <div class="hotel-name">SAX Paris, LXR Hotels & Resorts</div>
+          <div class="hotel-address">55 Av. de Saxe, 75007 Paris</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">10:00 - 12:00</div>
+          <div class="timeline-content">オルセー美術館</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">12:30 - 13:30</div>
+          <div class="timeline-content">オペラ座（パレ・ガルニエ）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">14:00</div>
+          <div class="timeline-content">凱旋門エリアでランチ</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">17:00 - 19:00</div>
+          <div class="timeline-content">モンマルトルの丘</div>
+          <div class="timeline-note">サンセットタイム。サクレ・クール寺院、画家の広場（テルトル広場）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 3: 6/1 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date">
+        <span class="month">JUN</span>
+        <span class="date">01</span>
+        <span class="dow">MON</span>
+      </div>
+      <div class="day-title">全仏オープン＆パリ観光<small>Roland-Garros & Paris</small></div>
+    </div>
+    <div class="day-body">
+      <div class="day-hotel">
+        <span class="hotel-icon">🏨</span>
+        <div>
+          <div class="hotel-name">SAX Paris, LXR Hotels & Resorts</div>
+          <div class="hotel-address">55 Av. de Saxe, 75007 Paris</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-content">🎾 弓子 → 全仏オープン（ローラン・ギャロス）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">くみ＆さき → パリ観光</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">夜</div>
+          <div class="timeline-content">エッフェル塔</div>
+          <div class="timeline-note">毎時0分にキラキラ点滅（シャンパンフラッシュ）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider">✦ ✦ ✦</div>
+
+  <!-- Day 4: 6/2 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date" style="background: #7d6930;">
+        <span class="month">JUN</span>
+        <span class="date">02</span>
+        <span class="dow">TUE</span>
+      </div>
+      <div class="day-title">南フランスへ移動＆サンレミ観光<small>Direction le Sud — Saint-Rémy-de-Provence</small></div>
+    </div>
+    <div class="day-body">
+      <div class="day-hotel">
+        <span class="hotel-icon">🏨</span>
+        <div>
+          <div class="hotel-name">Hôtel Le Bristol Avignon</div>
+          <div class="hotel-address">44 Cr Jean Jaurès, 84000 Avignon</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">7:42</div>
+          <div class="timeline-content">パリ Gare de Lyon 発 → アヴィニョン（TGV）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">11:00</div>
+          <div class="timeline-content">Avignon Centre 到着 → ホテルに荷物預け</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">12:00 - 13:00</div>
+          <div class="timeline-content">ランチ（アヴィニョン）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">13:00 - 13:30</div>
+          <div class="timeline-content">タクシーでサンレミへ移動</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">13:30 - 17:30</div>
+          <div class="timeline-content">サンレミ＝ド＝プロヴァンス観光</div>
+        </div>
+      </div>
+      <div class="spot-tags">
+        <span class="spot-tag">⛪ サンポール・ド・モゾル修道院</span>
+        <span class="spot-tag">🚶 ゴッホルート</span>
+        <span class="spot-tag">🏘 サンレミ旧市街を軽く散策</span>
+      </div>
+      <div class="timeline" style="margin-top: 16px;">
+        <div class="timeline-item">
+          <div class="timeline-time">夕方〜夜</div>
+          <div class="timeline-content">アヴィニョンに戻る → のんびり</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 5: 6/3 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date" style="background: #7d6930;">
+        <span class="month">JUN</span>
+        <span class="date">03</span>
+        <span class="dow">WED</span>
+      </div>
+      <div class="day-title">アルル観光＆ニース移動<small>Arles → Nice</small></div>
+    </div>
+    <div class="day-body">
+      <div class="day-hotel">
+        <span class="hotel-icon">🏨</span>
+        <div>
+          <div class="hotel-name">Villa Bougainville by HappyCulture</div>
+          <div class="hotel-address">29 Av. Thiers, 06000 Nice</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">9:30</div>
+          <div class="timeline-content">アルル到着（アヴィニョンから電車約20分）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">9:30 - 10:00</div>
+          <div class="timeline-content">① ラマルティーヌ広場（黄色い家）</div>
+          <div class="timeline-note">写真だけでOK。滞在短め</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">10:00 - 10:45</div>
+          <div class="timeline-content">② 円形闘技場（Les Arènes）</div>
+          <div class="timeline-note">ローマ時代の円形競技場。アルルのシンボル</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">10:45 - 11:15</div>
+          <div class="timeline-content">③ サントロフィーム教会（Église Saint-Trophime）</div>
+          <div class="timeline-note">ロマネスク彫刻が美しい世界遺産の教会</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">11:15 - 11:30</div>
+          <div class="timeline-content">④ フォーラム広場（夜のカフェテラス）</div>
+          <div class="timeline-note">カフェで軽く休憩もアリ。朝は人少なくて写真撮りやすい</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">11:30 - 12:30</div>
+          <div class="timeline-content">⑤ 跳ね橋（Pont Van Gogh）</div>
+          <div class="timeline-note">タクシー or バス移動。ここが一番時間かかる</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">12:30 - 13:30</div>
+          <div class="timeline-content">ランチ</div>
+          <div class="timeline-note">アルル市内戻ってゆっくり</div>
+        </div>
+      </div>
+      <div class="timeline" style="margin-top: 16px;">
+        <div class="timeline-item">
+          <div class="timeline-time">16:09</div>
+          <div class="timeline-content">Avignon 発 → ニース（TGV）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">20:38</div>
+          <div class="timeline-content">Nice Ville 到着</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">21:00頃</div>
+          <div class="timeline-content">ホテルチェックイン → チル</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 6: 6/4 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date" style="background: #2e7d6e;">
+        <span class="month">JUN</span>
+        <span class="date">04</span>
+        <span class="dow">THU</span>
+      </div>
+      <div class="day-title">ニース観光<small>Journée à Nice</small></div>
+    </div>
+    <div class="day-body">
+      <div class="day-hotel">
+        <span class="hotel-icon">🏨</span>
+        <div>
+          <div class="hotel-name">Villa Bougainville by HappyCulture</div>
+          <div class="hotel-address">29 Av. Thiers, 06000 Nice</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-content">海辺散策（プロムナード・デ・ザングレ）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">マセナ広場</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">エズ村</div>
+          <div class="timeline-note">ニースからバスで約30分。断崖絶壁の「鷲の巣村」</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">くみ＆Kevin 合流</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider">✦ ✦ ✦</div>
+
+  <!-- Day 7: 6/5 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date">
+        <span class="month">JUN</span>
+        <span class="date">05</span>
+        <span class="dow">FRI</span>
+      </div>
+      <div class="day-title">パリへ移動＆最後の夜<small>Retour à Paris — Dernier dîner</small></div>
+    </div>
+    <div class="day-body">
+      <div class="day-hotel">
+        <span class="hotel-icon">🏨</span>
+        <div>
+          <div class="hotel-name">SAX Paris, LXR Hotels & Resorts</div>
+          <div class="hotel-address">55 Av. de Saxe, 75007 Paris</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-content">お姉ちゃん＆お母さん → ニースからパリへ移動</div>
+          <div class="timeline-note">電車（約6時間）or 飛行機（約1.5時間）</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">くみ＆Kevin → 別行動</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">夜</div>
+          <div class="timeline-content">🍽 最後の晩餐 — パリで特別なディナー</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 8: 6/6 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-date">
+        <span class="month">JUN</span>
+        <span class="date">06</span>
+        <span class="dow">SAT</span>
+      </div>
+      <div class="day-title">帰国日<small>Jour du retour</small></div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">10:15</div>
+          <div class="timeline-content">シャルル・ド・ゴール空港（CDG）出発</div>
+          <div class="timeline-note">空港には2時間前の8:00頃到着を目安に</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Gogh Reading ==================== -->
+<div class="section" id="gogh">
+  <div class="section-header">
+    <div class="section-icon">🎨</div>
+    <h2>Van Gogh et la Provence</h2>
+    <p class="section-sub">ゴッホと南フランス — 旅が10倍楽しくなる物語</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">🌻</span> ゴッホの生涯</h3>
+    <p class="r-lead">フィンセント・ファン・ゴッホ（1853-1890）。わずか10年の画家人生で約2,000点の作品を残した情熱の画家。</p>
+
+    <h4>オランダからパリへ</h4>
+    <p>オランダの牧師の家に生まれたゴッホは、画商や教師など様々な職を経て、27歳で画家を志しました。初期は暗い色調で農民の生活を描いていましたが、1886年にパリの弟テオのもとへ移ると、印象派の明るい色彩に衝撃を受けます。モネやルノワールの作品に触れ、彼の絵は劇的に変わり始めました。</p>
+
+    <h4>アルル時代（1888年2月 - 1889年5月）</h4>
+    <p>「日本の浮世絵のような明るい光を求めて」— ゴッホは南仏アルルに移り住みます。ここで彼は驚くべき創作の爆発を経験し、わずか15ヶ月で約200点の油絵を描きました。</p>
+    <p>ラマルティーヌ広場に借りた「黄色い家」をアトリエとし、画家仲間との共同生活を夢見ます。1888年10月、ゴーギャンが合流。しかし二人の関係は次第に悪化し、12月のクリスマス前夜、精神的な危機の中でゴッホは自らの耳を切り落とす事件を起こしました。</p>
+
+    <h4>サンレミ時代（1889年5月 - 1890年5月）</h4>
+    <p>アルルでの事件の後、ゴッホは自らサンレミ＝ド＝プロヴァンスのサンポール・ド・モゾル修道院に入院します。ここでの1年間は、彼の最も有名な作品が生まれた時期です。病室の窓から見える風景を描いた「星月夜」、修道院の庭の「アイリス」、そしてうねるような糸杉の連作。精神は不安定でしたが、筆は止まることなく約150点の油絵を生み出しました。</p>
+
+    <h4>最期</h4>
+    <p>1890年5月にパリ近郊のオーヴェル＝シュル＝オワーズに移り、さらに精力的に制作を続けましたが、同年7月29日、37歳の若さで亡くなりました。生前に売れた絵はわずか1点とされています。</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">📍</span> 訪れる場所とゴッホの作品</h3>
+    <p class="r-lead">アルルとサンレミで訪れるスポットには、ゴッホが実際に描いた場所がたくさんあります。</p>
+
+    <div class="artwork-pair">
+      <div class="artwork-item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Vincent_Van_Gogh_0014.jpg/400px-Vincent_Van_Gogh_0014.jpg" alt="アルルの跳ね橋 - ゴッホ (1888)">
+        <div class="art-caption">
+          <div class="art-place">アルルの跳ね橋</div>
+          <div class="art-work">「アルルの跳ね橋」(1888)<br>洗濯する女性たちと青い空を描いた名作</div>
+        </div>
+      </div>
+      <div class="artwork-item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Vincent_van_Gogh_-_The_yellow_house_%28%27The_street%27%29.jpg/400px-Vincent_van_Gogh_-_The_yellow_house_%28%27The_street%27%29.jpg" alt="黄色い家 - ゴッホ (1888)">
+        <div class="art-caption">
+          <div class="art-place">ラマルティーヌ広場</div>
+          <div class="art-work">「黄色い家」(1888)<br>ゴッホのアトリエ兼住居だった建物</div>
+        </div>
+      </div>
+    </div>
+    <div class="artwork-pair">
+      <div class="artwork-item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Vincent_Willem_van_Gogh_-_Cafe_Terrace_at_Night_%28Yorck%29.jpg/400px-Vincent_Willem_van_Gogh_-_Cafe_Terrace_at_Night_%28Yorck%29.jpg" alt="夜のカフェテラス - ゴッホ (1888)">
+        <div class="art-caption">
+          <div class="art-place">フォーラム広場</div>
+          <div class="art-work">「夜のカフェテラス」(1888)<br>星空の下に輝くカフェを描いた傑作</div>
+        </div>
+      </div>
+      <div class="artwork-item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/400px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg" alt="星月夜 - ゴッホ (1889)">
+        <div class="art-caption">
+          <div class="art-place">サンポール・ド・モゾル修道院</div>
+          <div class="art-work">「星月夜」(1889)<br>病室の窓からの景色がモチーフ</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:16px; font-size:13px; color:var(--text-light);">💡 アルルの街中にはゴッホが描いた場所に案内板が立っており、作品の複製と見比べながら散策できます。</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">🚶</span> サンレミのゴッホルート</h3>
+    <p class="r-lead">サンレミ＝ド＝プロヴァンスには、ゴッホが描いた風景を巡る散策ルートが整備されています。</p>
+
+    <h4>ルートの概要</h4>
+    <p>サンポール・ド・モゾル修道院を起点に、ゴッホが実際にイーゼルを立てて絵を描いた場所に案内板（パネル）が設置されています。各パネルにはゴッホの作品の複製が掲示されており、目の前の風景と絵を見比べることができます。全部で約20ヶ所のパネルがあり、すべて回ると約1〜2時間のコースです。</p>
+
+    <h4>主な見どころ</h4>
+
+    <div class="artwork-pair">
+      <div class="artwork-item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Starry_Night_Over_the_Rhone.jpg/400px-Starry_Night_Over_the_Rhone.jpg" alt="ローヌ川の星月夜 - ゴッホ (1888)">
+        <div class="art-caption">
+          <div class="art-place">オリーブ畑とアルピーユ山脈</div>
+          <div class="art-work">修道院周辺に広がるオリーブ畑。<br>ゴッホが繰り返し描いたモチーフ</div>
+        </div>
+      </div>
+      <div class="artwork-item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Irises-Vincent_van_Gogh.jpg/400px-Irises-Vincent_van_Gogh.jpg" alt="アイリス - ゴッホ (1889)">
+        <div class="art-caption">
+          <div class="art-place">修道院の庭園</div>
+          <div class="art-work">「アイリス」(1889)<br>入院直後に庭で描いた傑作</div>
+        </div>
+      </div>
+    </div>
+
+    <h4>散策のポイント</h4>
+    <p>修道院の内部も見学可能で、ゴッホが使っていた病室が再現されています。窓から見える景色は「星月夜」に描かれたものとほぼ同じ。庭園にはラベンダーやアイリスが植えられ、特に5月末〜6月は花が美しい季節です。</p>
+    <p>修道院からサンレミの旧市街までは徒歩約20分。旧市街にもゴッホのパネルが点在しており、プロヴァンスらしいマルシェ（市場）やカフェを楽しみながら巡ることができます。</p>
+
+    <h4>おすすめの回り方（6/3のプラン）</h4>
+    <p>① まずサンポール・ド・モゾル修道院で内部見学と庭園散策（約1時間）<br>
+       ② 修道院周辺のゴッホルートを散策（約45分）<br>
+       ③ サンレミ旧市街へ移動してランチ＆街歩き（約1.5時間）<br>
+       ④ 14:30頃サンレミ出発 → アヴィニョンへ戻る</p>
+  </div>
+</div>
+
+<!-- ==================== Spots Guide ==================== -->
+<div class="section" id="spots">
+  <div class="section-header">
+    <div class="section-icon">🗼</div>
+    <h2>Guide des Sites</h2>
+    <p class="section-sub">観光スポットガイド</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">🏛</span> オルセー美術館</h3>
+    <p class="r-lead">Musée d'Orsay — 印象派の殿堂</p>
+    <p>元々は1900年のパリ万博のために建てられた鉄道駅「オルセー駅」。1986年に美術館として生まれ変わりました。駅舎の大時計がそのまま残っており、館内から時計越しにセーヌ川を眺められます。</p>
+    <h4>見逃せない作品</h4>
+    <p>モネ「睡蓮」シリーズ、ルノワール「ムーラン・ド・ラ・ギャレットの舞踏会」、ドガのバレリーナ作品群、そしてもちろんゴッホの「自画像」や「アルルの寝室」も所蔵されています。5階の印象派ギャラリーは必見です。</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">⛪</span> モンマルトルの丘</h3>
+    <p class="r-lead">Montmartre — パリで最も芸術的な丘</p>
+    <p>19世紀末〜20世紀初頭、ピカソ、モディリアーニ、ユトリロなど多くの芸術家がこの丘で暮らしました。頂上に建つサクレ・クール寺院は白亜のドームが美しく、パリを一望できる絶景スポット。寺院前の階段に座って街を眺めるのがパリジャン流の楽しみ方です。</p>
+    <p>テルトル広場では今も似顔絵描きの画家たちが並んでいます。</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">🗼</span> エッフェル塔</h3>
+    <p class="r-lead">Tour Eiffel — パリのシンボル</p>
+    <p>1889年のパリ万博のために建設。当時は「鉄の怪物」と批判されましたが、今やパリで最も愛されるランドマークです。</p>
+    <h4>シャンパンフラッシュ</h4>
+    <p>日没後、毎時0分に約5分間、塔全体がキラキラと点滅する「シャンパンフラッシュ」が見られます（深夜1:00が最終回）。トロカデロ広場やシャン・ド・マルス公園からの眺めが特におすすめです。</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">🦅</span> エズ村</h3>
+    <p class="r-lead">Èze — 地中海を見下ろす鷲の巣村</p>
+    <p>「鷲の巣村（Village Perché）」とは、中世に外敵から身を守るため断崖の上に作られた村のこと。エズはその代表格で、海抜427mの岩山の上に中世の面影をそのまま残しています。</p>
+    <p>石畳の路地を登った先にある熱帯庭園（Jardin Exotique）からは、コートダジュールの紺碧の海が一望できます。ニースからバス82番で約30分です。</p>
+  </div>
+</div>
+
+<!-- ==================== French Culture ==================== -->
+<div class="section" id="culture">
+  <div class="section-header">
+    <div class="section-icon">🥐</div>
+    <h2>La Culture Française</h2>
+    <p class="section-sub">フランス文化ミニガイド</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">🍽</span> 食事のマナーと楽しみ方</h3>
+    <p class="r-lead">知っておくとレストランで自信が持てるポイント</p>
+
+    <h4>食事の時間帯</h4>
+    <p>フランスのランチは12:00〜14:00、ディナーは19:30〜が一般的。日本より遅めです。レストランが開く前に行っても閉まっていることがあるので注意。</p>
+
+    <h4>お店に入ったら</h4>
+    <p>レストランでもパン屋でもブティックでも、入店時に「Bonjour!（ボンジュール）」と挨拶するのがフランスの基本マナーです。挨拶なしにお店に入ると失礼にあたります。退店時は「Merci, au revoir!（メルシー、オ・ルヴォワール）」と言いましょう。</p>
+
+    <h4>レストランでのポイント</h4>
+    <p>パンは皿の横のテーブルに直接置くのがフランス流（パン皿がないことが多い）。お水は「Une carafe d'eau, s'il vous plaît（ユヌ・カラフ・ドー・シルヴプレ）」と言えば無料のお水がもらえます。お会計は「L'addition, s'il vous plaît（ラディシオン・シルヴプレ）」で。フランスではウェイターが自分から伝票を持ってくることは少ないので、自分から声をかけましょう。</p>
+
+    <h4>チップ</h4>
+    <p>フランスではサービス料が含まれているのでチップは基本不要です。ただし、良いサービスを受けたら端数を切り上げて置いたり、1〜2ユーロをテーブルに残すとスマートです。</p>
+  </div>
+
+  <div class="reading-section">
+    <h3><span class="r-icon">☕</span> カフェ文化</h3>
+    <p class="r-lead">フランス人の生活の一部、カフェの楽しみ方</p>
+    <p>フランスのカフェでは、テラス席（外のテーブル）はカウンターより割高なことが多いです。でもパリのカフェテラスで道行く人を眺めるのはフランス旅行の醍醐味。少しの追加料金で最高の時間が過ごせます。</p>
+    <p>「Un café（アン・カフェ）」と頼むとエスプレッソが出てきます。日本のコーヒーに近いものが飲みたい場合は「Un café allongé（アン・カフェ・アロンジェ）」と注文しましょう。</p>
+  </div>
+</div>
+
+<!-- ==================== Hotels ==================== -->
+<div class="section" id="hotels">
+  <div class="section-header">
+    <div class="section-icon">🏨</div>
+    <h2>Nos Hôtels</h2>
+    <p class="section-sub">宿泊ホテル一覧</p>
+  </div>
+
+  <div class="hotel-cards">
+    <div class="hotel-card">
+      <span class="city-badge badge-paris">PARIS パリ</span>
+      <h4>SAX Paris, LXR Hotels & Resorts</h4>
+      <p class="hotel-detail">📍 55 Av. de Saxe, 75007 Paris, France</p>
+      <p class="hotel-detail">📅 5/30（土）〜 6/2（火）3泊 ＋ 6/5（金）1泊 — 計4泊</p>
+      <p class="hotel-detail">📝 エッフェル塔近くの7区。アンヴァリッドやシャン・ド・マルス徒歩圏内</p>
+    </div>
+
+    <div class="hotel-card">
+      <span class="city-badge badge-avignon">AVIGNON アヴィニョン</span>
+      <h4>Hôtel Le Bristol Avignon</h4>
+      <p class="hotel-detail">📍 44 Cr Jean Jaurès, 84000 Avignon, France</p>
+      <p class="hotel-detail">📅 6/2（火）〜 6/3（水）チェックアウト — 1泊</p>
+      <p class="hotel-detail">📝 アヴィニョン中心部。アルルやサンレミへのアクセス拠点</p>
+    </div>
+
+    <div class="hotel-card">
+      <span class="city-badge badge-nice">NICE ニース</span>
+      <h4>Villa Bougainville by HappyCulture</h4>
+      <p class="hotel-detail">📍 29 Av. Thiers, 06000 Nice, France</p>
+      <p class="hotel-detail">📅 6/3（水）〜 6/5（金）チェックアウト — 2泊</p>
+      <p class="hotel-detail">📝 ニース駅近く。海岸やマセナ広場へも徒歩圏内</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Map & Addresses ==================== -->
+<div class="section" id="map">
+  <div class="section-header">
+    <div class="section-icon">🗺</div>
+    <h2>Carte & Adresses</h2>
+    <p class="section-sub">地図 & アドレス一覧</p>
+  </div>
+
+  <div id="trip-map"></div>
+  <div class="map-legend">
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#5b4a8a;"></div> パリ</div>
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#b8860b;"></div> アヴィニョン & プロヴァンス</div>
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#2e7d6e;"></div> ニース & コートダジュール</div>
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#c0392b;"></div> ホテル</div>
+  </div>
+
+  <div class="address-list">
+    <div class="address-group">
+      <h4>🏨 ホテル</h4>
+      <div class="address-entry">
+        <span class="addr-name">SAX Paris</span>
+        <span class="addr-text">55 Av. de Saxe, 75007 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=55+Av.+de+Saxe+75007+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">Le Bristol Avignon</span>
+        <span class="addr-text">44 Cr Jean Jaurès, 84000 Avignon</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=44+Cr+Jean+Jaures+84000+Avignon" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">Villa Bougainville</span>
+        <span class="addr-text">29 Av. Thiers, 06000 Nice</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=29+Av.+Thiers+06000+Nice" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+    </div>
+
+    <div class="address-group">
+      <h4>🗼 パリの観光スポット</h4>
+      <div class="address-entry">
+        <span class="addr-name">オルセー美術館</span>
+        <span class="addr-text">1 Rue de la Légion d'Honneur, 75007 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Musee+d+Orsay+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">凱旋門</span>
+        <span class="addr-text">Place Charles de Gaulle, 75008 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Arc+de+Triomphe+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">オペラ座（ガルニエ）</span>
+        <span class="addr-text">Place de l'Opéra, 75009 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Palais+Garnier+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">モンマルトル / サクレ・クール</span>
+        <span class="addr-text">35 Rue du Chevalier de la Barre, 75018 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Sacre+Coeur+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">エッフェル塔</span>
+        <span class="addr-text">Champ de Mars, 5 Av. Anatole France, 75007 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Tour+Eiffel+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">ローラン・ギャロス</span>
+        <span class="addr-text">2 Av. Gordon Bennett, 75016 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Roland+Garros+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+    </div>
+
+    <div class="address-group">
+      <h4>🌻 アルル・プロヴァンスのゴッホスポット</h4>
+      <div class="address-entry">
+        <span class="addr-name">アルルの跳ね橋</span>
+        <span class="addr-text">Pont Van Gogh, Route de Port-Saint-Louis, Arles</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Pont+Van+Gogh+Arles" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">ラマルティーヌ広場（黄色い家）</span>
+        <span class="addr-text">Place Lamartine, 13200 Arles</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Place+Lamartine+Arles" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">円形闘技場（Les Arènes）</span>
+        <span class="addr-text">1 Rond-Point des Arènes, 13200 Arles</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Arenes+Arles" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">サントロフィーム教会</span>
+        <span class="addr-text">Place de la République, 13200 Arles</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Eglise+Saint+Trophime+Arles" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">フォーラム広場（夜のカフェテラス）</span>
+        <span class="addr-text">Place du Forum, 13200 Arles</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Place+du+Forum+Arles" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">サンポール・ド・モゾル修道院</span>
+        <span class="addr-text">Chemin Saint-Paul, 13210 Saint-Rémy-de-Provence</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Saint+Paul+de+Mausole+Saint+Remy+de+Provence" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">ゴッホルート（散策起点）</span>
+        <span class="addr-text">Sentier des Carrières, 13210 Saint-Rémy-de-Provence（修道院裏手から出発）</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Sentier+Van+Gogh+Saint+Remy+de+Provence" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+    </div>
+
+    <div class="address-group">
+      <h4>🏖 ニース・コートダジュール</h4>
+      <div class="address-entry">
+        <span class="addr-name">プロムナード・デ・ザングレ</span>
+        <span class="addr-text">Promenade des Anglais, 06000 Nice</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Promenade+des+Anglais+Nice" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">マセナ広場</span>
+        <span class="addr-text">Place Masséna, 06000 Nice</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Place+Massena+Nice" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">エズ村</span>
+        <span class="addr-text">06360 Èze, France</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Eze+Village+France" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+    </div>
+
+    <div class="address-group">
+      <h4>✈️ 空港 & 🚉 鉄道駅</h4>
+      <div class="address-entry">
+        <span class="addr-name">Gare de Lyon（パリ）</span>
+        <span class="addr-text">Place Louis-Armand, 75012 Paris</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Gare+de+Lyon+Paris" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">シャルル・ド・ゴール空港 (CDG)</span>
+        <span class="addr-text">95700 Roissy-en-France</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Aeroport+Charles+de+Gaulle" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">Gare d'Avignon Centre</span>
+        <span class="addr-text">42 Bd Saint-Roch, 84000 Avignon</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Gare+Avignon+Centre" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+      <div class="address-entry">
+        <span class="addr-name">Gare de Nice-Ville</span>
+        <span class="addr-text">Av. Thiers, 06000 Nice</span>
+        <a class="addr-link" href="https://www.google.com/maps/search/?api=1&query=Gare+de+Nice+Ville" target="_blank" rel="noopener">Maps↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Checklist ==================== -->
+<div class="section" id="checklist">
+  <div class="section-header">
+    <div class="section-icon">✅</div>
+    <h2>Liste de Bagages</h2>
+    <p class="section-sub">持ち物チェックリスト</p>
+  </div>
+
+  <div class="checklist-grid">
+    <div class="checklist-category">
+      <h4>📄 貴重品</h4>
+      <label class="check-item"><input type="checkbox" data-key="c1"> パスポート</label>
+      <label class="check-item"><input type="checkbox" data-key="c2"> パスポートのコピー</label>
+      <label class="check-item"><input type="checkbox" data-key="c3"> 航空券（eチケット）</label>
+      <label class="check-item"><input type="checkbox" data-key="c4"> ホテル予約確認書</label>
+      <label class="check-item"><input type="checkbox" data-key="c5"> クレジットカード</label>
+      <label class="check-item"><input type="checkbox" data-key="c6"> 現金（ユーロ）</label>
+      <label class="check-item"><input type="checkbox" data-key="c7"> 海外旅行保険証</label>
+    </div>
+
+    <div class="checklist-category">
+      <h4>🔌 電子機器</h4>
+      <label class="check-item"><input type="checkbox" data-key="c8"> スマートフォン</label>
+      <label class="check-item"><input type="checkbox" data-key="c9"> 充電器・ケーブル</label>
+      <label class="check-item"><input type="checkbox" data-key="c10"> 変換プラグ（Cタイプ）</label>
+      <label class="check-item"><input type="checkbox" data-key="c11"> モバイルバッテリー</label>
+      <label class="check-item"><input type="checkbox" data-key="c12"> カメラ</label>
+      <label class="check-item"><input type="checkbox" data-key="c13"> Wi-Fi / SIMカード</label>
+    </div>
+
+    <div class="checklist-category">
+      <h4>👗 衣類</h4>
+      <label class="check-item"><input type="checkbox" data-key="c14"> 着替え（日数分）</label>
+      <label class="check-item"><input type="checkbox" data-key="c15"> 歩きやすい靴</label>
+      <label class="check-item"><input type="checkbox" data-key="c16"> 羽織りもの（冷房対策）</label>
+      <label class="check-item"><input type="checkbox" data-key="c17"> サングラス</label>
+      <label class="check-item"><input type="checkbox" data-key="c18"> 帽子</label>
+      <label class="check-item"><input type="checkbox" data-key="c19"> パジャマ</label>
+    </div>
+
+    <div class="checklist-category">
+      <h4>💊 日用品・その他</h4>
+      <label class="check-item"><input type="checkbox" data-key="c20"> 常備薬</label>
+      <label class="check-item"><input type="checkbox" data-key="c21"> 日焼け止め</label>
+      <label class="check-item"><input type="checkbox" data-key="c22"> 歯ブラシ・歯磨き粉</label>
+      <label class="check-item"><input type="checkbox" data-key="c23"> 折りたたみ傘</label>
+      <label class="check-item"><input type="checkbox" data-key="c24"> エコバッグ</label>
+      <label class="check-item"><input type="checkbox" data-key="c25"> ガイドブック / このしおり</label>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Basic Info ==================== -->
+<div class="section" id="info">
+  <div class="section-header">
+    <div class="section-icon">ℹ️</div>
+    <h2>Informations Pratiques</h2>
+    <p class="section-sub">フランス基本情報</p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>🕐 時差</h4>
+      <p>日本より <strong>7時間遅い</strong><br>（サマータイム期間中）<br>日本が正午 → フランスは朝5時</p>
+    </div>
+
+    <div class="info-card">
+      <h4>💶 通貨</h4>
+      <p><strong>ユーロ（EUR / €）</strong><br>1ユーロ ≒ 約184円（目安）<br>クレジットカードが広く使えます</p>
+    </div>
+
+    <div class="info-card">
+      <h4>🔌 電圧・プラグ</h4>
+      <p><strong>220V / Cタイプ</strong><br>丸ピン2本の変換プラグが必要<br>スマホの充電器は大体そのまま使えます（電圧確認）</p>
+    </div>
+
+    <div class="info-card">
+      <h4>🌤 天気（5月末〜6月）</h4>
+      <p>パリ: 15〜25℃ 曇りがち<br>南仏: 20〜30℃ 晴れが多い<br>朝晩は冷えるので羽織り必須</p>
+    </div>
+
+    <div class="info-card">
+      <h4>🚨 緊急連絡先</h4>
+      <ul>
+        <li>🚑 救急・消防: <strong>15</strong> / <strong>18</strong></li>
+        <li>👮 警察: <strong>17</strong></li>
+        <li>🆘 EU共通緊急: <strong>112</strong></li>
+        <li>🇯🇵 在仏日本大使館:<br><strong>01 48 88 62 00</strong></li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h4>🚇 交通メモ</h4>
+      <ul>
+        <li>パリ地下鉄: 1回券 約€2.15</li>
+        <li>TGV（高速鉄道）で都市間移動</li>
+        <li>タクシーは Uber も便利</li>
+        <li>スリに注意！貴重品は前ポケットに</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Phrase Table -->
+  <table class="phrase-table">
+    <thead>
+      <tr>
+        <th>日本語</th>
+        <th>フランス語</th>
+        <th>読み方</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>こんにちは</td>
+        <td class="fr">Bonjour</td>
+        <td class="reading">ボンジュール</td>
+      </tr>
+      <tr>
+        <td>こんばんは</td>
+        <td class="fr">Bonsoir</td>
+        <td class="reading">ボンソワール</td>
+      </tr>
+      <tr>
+        <td>ありがとう</td>
+        <td class="fr">Merci</td>
+        <td class="reading">メルシー</td>
+      </tr>
+      <tr>
+        <td>お願いします</td>
+        <td class="fr">S'il vous plaît</td>
+        <td class="reading">シルヴプレ</td>
+      </tr>
+      <tr>
+        <td>すみません</td>
+        <td class="fr">Excusez-moi</td>
+        <td class="reading">エクスキューゼ・モワ</td>
+      </tr>
+      <tr>
+        <td>お会計お願いします</td>
+        <td class="fr">L'addition, s'il vous plaît</td>
+        <td class="reading">ラディシオン・シルヴプレ</td>
+      </tr>
+      <tr>
+        <td>お水ください</td>
+        <td class="fr">Une carafe d'eau, s'il vous plaît</td>
+        <td class="reading">ユヌ・カラフ・ドー・シルヴプレ</td>
+      </tr>
+      <tr>
+        <td>英語は話せますか？</td>
+        <td class="fr">Parlez-vous anglais ?</td>
+        <td class="reading">パルレヴ・アングレ？</td>
+      </tr>
+      <tr>
+        <td>いくらですか？</td>
+        <td class="fr">C'est combien ?</td>
+        <td class="reading">セ・コンビヤン？</td>
+      </tr>
+      <tr>
+        <td>美味しい！</td>
+        <td class="fr">C'est délicieux !</td>
+        <td class="reading">セ・デリシュー！</td>
+      </tr>
+      <tr>
+        <td>さようなら</td>
+        <td class="fr">Au revoir</td>
+        <td class="reading">オ・ルヴォワール</td>
+      </tr>
+      <tr>
+        <td>はい / いいえ</td>
+        <td class="fr">Oui / Non</td>
+        <td class="reading">ウィ / ノン</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== Memo ==================== -->
+<div class="section" id="memo">
+  <div class="section-header">
+    <div class="section-icon">📝</div>
+    <h2>Notes</h2>
+    <p class="section-sub">メモ</p>
+  </div>
+
+  <div class="memo-area">
+    <h4>自由にメモをどうぞ</h4>
+    <div class="memo-lines"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-ornament">✦ ✦ ✦</div>
+  <p>Bon Voyage! 素敵な旅を 🇫🇷</p>
+</footer>
+
+<!-- JavaScript: Checklist persistence -->
+<script>
+(function() {
+  const STORAGE_KEY = 'france-trip-checklist-2026';
+
+  function loadChecklist() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
+        const key = cb.getAttribute('data-key');
+        if (key && saved[key]) {
+          cb.checked = true;
+          cb.closest('.check-item').classList.add('checked');
+        }
+      });
+    } catch(e) {}
+  }
+
+  function saveChecklist() {
+    const state = {};
+    document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
+      const key = cb.getAttribute('data-key');
+      if (key) state[key] = cb.checked;
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadChecklist();
+    document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', function() {
+        this.closest('.check-item').classList.toggle('checked', this.checked);
+        saveChecklist();
+      });
+    });
+  });
+
+  // ========== Leaflet Map ==========
+  function initMap() {
+    var map = L.map('trip-map', { scrollWheelZoom: false }).setView([45.5, 4.5], 6);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 18,
+      subdomains: 'abcd'
+    }).addTo(map);
+
+    function icon(color) {
+      return L.divIcon({
+        className: '',
+        html: '<div style="width:14px;height:14px;border-radius:50%;background:'+color+';border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        popupAnchor: [0, -10]
+      });
+    }
+
+    var hotelIcon = icon('#c0392b');
+    var parisIcon = icon('#5b4a8a');
+    var provIcon = icon('#b8860b');
+    var niceIcon = icon('#2e7d6e');
+
+    // Hotels
+    L.marker([48.8498, 2.3078], {icon: hotelIcon}).addTo(map).bindPopup('<b>🏨 SAX Paris</b><br>55 Av. de Saxe, 75007 Paris');
+    L.marker([43.9493, 4.8055], {icon: hotelIcon}).addTo(map).bindPopup('<b>🏨 Le Bristol Avignon</b><br>44 Cr Jean Jaurès, 84000 Avignon');
+    L.marker([43.7050, 7.2619], {icon: hotelIcon}).addTo(map).bindPopup('<b>🏨 Villa Bougainville</b><br>29 Av. Thiers, 06000 Nice');
+
+    // Paris spots
+    L.marker([48.8600, 2.3266], {icon: parisIcon}).addTo(map).bindPopup('<b>🏛 オルセー美術館</b><br>Musée d\'Orsay');
+    L.marker([48.8738, 2.2950], {icon: parisIcon}).addTo(map).bindPopup('<b>🏛 凱旋門</b><br>Arc de Triomphe');
+    L.marker([48.8720, 2.3316], {icon: parisIcon}).addTo(map).bindPopup('<b>🎭 オペラ座</b><br>Palais Garnier');
+    L.marker([48.8867, 2.3431], {icon: parisIcon}).addTo(map).bindPopup('<b>⛪ サクレ・クール / モンマルトル</b>');
+    L.marker([48.8584, 2.2945], {icon: parisIcon}).addTo(map).bindPopup('<b>🗼 エッフェル塔</b><br>Tour Eiffel');
+    L.marker([48.8469, 2.2527], {icon: parisIcon}).addTo(map).bindPopup('<b>🎾 ローラン・ギャロス</b><br>Roland-Garros');
+
+    // Provence spots
+    L.marker([43.6620, 4.6170], {icon: provIcon}).addTo(map).bindPopup('<b>🌉 アルルの跳ね橋</b><br>Pont Van Gogh');
+    L.marker([43.6797, 4.6303], {icon: provIcon}).addTo(map).bindPopup('<b>🏠 ラマルティーヌ広場</b><br>黄色い家');
+    L.marker([43.6776, 4.6310], {icon: provIcon}).addTo(map).bindPopup('<b>🏛 円形闘技場</b><br>Les Arènes d\'Arles');
+    L.marker([43.6763, 4.6275], {icon: provIcon}).addTo(map).bindPopup('<b>⛪ サントロフィーム教会</b><br>Église Saint-Trophime');
+    L.marker([43.6769, 4.6279], {icon: provIcon}).addTo(map).bindPopup('<b>☕ フォーラム広場</b><br>夜のカフェテラス');
+    L.marker([43.7745, 4.8812], {icon: provIcon}).addTo(map).bindPopup('<b>⛪ サンポール・ド・モゾル修道院</b><br>サンレミ＝ド＝プロヴァンス');
+
+    // Nice & Côte d'Azur
+    L.marker([43.6943, 7.2563], {icon: niceIcon}).addTo(map).bindPopup('<b>🏖 プロムナード・デ・ザングレ</b>');
+    L.marker([43.6972, 7.2701], {icon: niceIcon}).addTo(map).bindPopup('<b>🏛 マセナ広場</b><br>Place Masséna');
+    L.marker([43.7281, 7.3612], {icon: niceIcon}).addTo(map).bindPopup('<b>🦅 エズ村</b><br>Èze Village');
+
+    // Airport & Stations
+    var transitIcon = icon('#666666');
+    L.marker([49.0097, 2.5479], {icon: transitIcon}).addTo(map).bindPopup('<b>✈️ シャルル・ド・ゴール空港 (CDG)</b>');
+    L.marker([43.9419, 4.8059], {icon: transitIcon}).addTo(map).bindPopup('<b>🚉 Gare d\'Avignon Centre</b>');
+    L.marker([43.7044, 7.2620], {icon: transitIcon}).addTo(map).bindPopup('<b>🚉 Gare de Nice-Ville</b>');
+
+    // Route line
+    L.polyline([
+      [48.855, 2.30], [43.95, 4.81], [43.68, 4.63], [43.77, 4.88], [43.70, 7.27], [48.855, 2.30]
+    ], { color: '#c9a96e', weight: 2, dashArray: '8 6', opacity: 0.6 }).addTo(map);
+  }
+
+  if (document.getElementById('trip-map')) { initMap(); }
+
+  // Smooth scroll offset for fixed nav
+  document.querySelectorAll('nav a[href^="#"]').forEach(a => {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        const offset = 50;
+        const y = target.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
